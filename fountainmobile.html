@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Variable Blink Background</title>
+  <style>
+    body { margin: 0; background: black; height: 100vh; }
+
+    @keyframes bgblink {
+      0%   { background: black; }
+      50%  { background: white; }
+      100% { background: black; }
+    }
+
+    .blink-fast { animation: bgblink 0.1s steps(1, end) infinite; }
+    .blink-slow { animation: bgblink 0.8s steps(1, end) infinite; }
+  </style>
+</head>
+<body>
+<script>
+let touchCount = 0;
+let lastTouchTime = 0;
+let checkTimer = null;
+
+document.addEventListener("touchstart", () => {
+  const now = Date.now();
+  touchCount = (now - lastTouchTime < 3000) ? touchCount + 1 : 1;
+  lastTouchTime = now;
+
+  if (touchCount >= 3) {
+    startBlink("fast");
+    touchCount = 0;
+  }
+});
+
+function startBlink(mode) {
+  document.body.classList.remove("blink-fast", "blink-slow");
+  if (mode === "fast") {
+    document.body.classList.add("blink-fast");
+  } else {
+    document.body.classList.add("blink-slow");
+  }
+
+  if (!checkTimer) {
+    checkTimer = setInterval(checkInactivity, 200);
+  }
+}
+
+function checkInactivity() {
+  const now = Date.now();
+  const elapsed = now - lastTouchTime;
+
+  if (elapsed > 3000) {
+    stopBlink();
+  } else if (elapsed > 800) {
+    // switch to slow if more than 0.8s since last touch
+    if (document.body.classList.contains("blink-fast")) {
+      document.body.classList.remove("blink-fast");
+      document.body.classList.add("blink-slow");
+    }
+  }
+}
+
+function stopBlink() {
+  clearInterval(checkTimer);
+  checkTimer = null;
+  document.body.classList.remove("blink-fast", "blink-slow");
+  document.body.style.background = "black";
+}
+</script>
+</body>
+</html>

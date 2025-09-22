@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Touch to Play / Restart</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: black;
+      /* remove or keep this image; it will be overridden to solid black on video end */
+      background-image: url(IMG_9409_10.png);
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;           /* hidden until play */
+      transform: scale(1.1);
+      filter: contrast(1.3);
+    }
+  </style>
+</head>
+<body>
+  <video id="vid" src="IMG_9409.mp4" playsinline muted></video>
+
+  <script>
+    const video = document.getElementById("vid");
+
+    let touchSeq = 0;             // increments on every touch
+    let lastRestartedAtSeq = 0;   // seq value at which we last force-restarted
+
+    // Play video from the start (and show it)
+    async function playFromStart() {
+      try {
+        video.currentTime = 0;
+        video.style.display = "block";
+        // clear any body inline background override when starting
+        document.body.style.background = "";
+        await video.play();
+      } catch (e) {
+        // playback might fail if not user-initiated on some browsers
+        // keep silent; a new touch will try again
+      }
+    }
+
+    // On every touch:
+    // 1) If video stopped/hidden → start from beginning immediately.
+    // 2) Schedule a check in 1s; if another touch occurred during that 1s, restart from beginning.
+    window.addEventListener("touchstart", () => {
+      const mySeq = ++touchSeq;
+
+      if (video.paused || video.ended || video.style.display === "none") {
+        playFromStart();
+      }
+
+      setTimeout(() => {
+        // If any new touch happened within this 1s window (touchSeq > mySeq)
+        // and we haven't already restarted for that newer sequence, restart.
+        if (touchSeq > mySeq && lastRestartedAtSeq !== touchSeq) {
+          lastRestartedAtSeq = touchSeq;
+          playFromStart();
+        }
+      }, 1000);
+    }, { passive: true });
+
+    // When video finishes: hide it and force pure black background.
+    video.addEventListener("ended", () => {
+      video.style.display = "none";
+      // shorthand 'background' resets background-image to none → solid black
+      document.body.style.background = "black";
+    });
+  </script>
+</body>
+</html>

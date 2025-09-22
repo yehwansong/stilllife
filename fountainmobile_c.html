@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Color Cycle Blink</title>
+  <style>
+    body { margin: 0; height: 100vh; background-color: black; transition: background-color 0.2s}
+    body.class-0 { background-color: #ff2400 !important; }
+    body.class-1 { background-color: #fff200 !important; }
+    body.class-2 { background-color: #0033ed !important; }
+    body.class-3 { background-color: #00ef77 !important; }
+  </style>
+</head>
+<body>
+<script>
+let touchCount = 0;
+let lastTouchTime = 0;
+let cycleTimer = null;
+let colorIndex = 0;
+
+document.addEventListener("touchstart", () => {
+  const now = Date.now();
+  touchCount = (now - lastTouchTime < 3000) ? touchCount + 1 : 1;
+  lastTouchTime = now;
+
+  if (touchCount >= 3) {
+    startCycling("fast");
+    touchCount = 0;
+  }
+});
+
+function startCycling(speed) {
+  stopCycling();
+  let interval = (speed === "fast") ? 100 : 800; // ms
+  cycleTimer = setInterval(() => {
+    document.body.className = "class-" + (colorIndex % 4);
+    colorIndex++;
+  }, interval);
+
+  // keep checking inactivity to slow down or stop
+  checkInactivity();
+}
+
+function checkInactivity() {
+  const now = Date.now();
+  const elapsed = now - lastTouchTime;
+
+  if (elapsed > 3000) {
+    stopCycling();
+  } else if (elapsed > 800) {
+    // switch to slow if currently fast
+    if (cycleTimer) {
+      stopCycling();
+      startCycling("slow");
+    }
+  }
+  requestAnimationFrame(checkInactivity);
+}
+
+function stopCycling() {
+  if (cycleTimer) {
+    clearInterval(cycleTimer);
+    cycleTimer = null;
+  }
+  document.body.className = "";
+  document.body.style.backgroundColor = "black";
+}
+</script>
+</body>
+</html>
