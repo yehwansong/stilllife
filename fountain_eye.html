@@ -23,19 +23,18 @@
     width: 100vw;
     height: 100vh;
     background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-.page img {
-  width: 100vh;
-  height: 100vw;
-  object-fit: cover;
-  display: block;
-  filter: contrast(1.2) saturate(1.2);
-  transform: rotate(90deg) translateX(-100%);
-  transform-origin: top left;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
+  .page img {
+    width: 100vh;
+    height: 100vw;
+    object-fit: cover;
+    display: block;
+    filter: contrast(1.2) saturate(1.2);
+    transform: rotate(90deg);
+  }
 </style>
 </head>
 <body>
@@ -45,38 +44,31 @@
   const lastFrame  = 650423;
   const fps = 30;
   const container = document.getElementById("container");
-
   const frames = [];
   for (let i = firstFrame; i <= lastFrame; i++) {
     const img = new Image();
     img.src = `fork_img/IMG_${i}.webp`;
     frames.push(img);
   }
-
   const page = document.createElement("div");
   page.className = "page";
   const imgEl = document.createElement("img");
   imgEl.src = frames[0].src;
   page.appendChild(imgEl);
   container.appendChild(page);
-
   let animationId = null;
   let isPlaying = false;
-
   function stopAnimation() {
     if (animationId !== null) { clearTimeout(animationId); animationId = null; }
     isPlaying = false;
   }
-
   function playReverse() {
     stopAnimation();
     isPlaying = true;
     const totalFrames = frames.length;
     const rampFrames = 6;
     let frameIdx = totalFrames - 1;
-
     imgEl.src = frames[frameIdx].src;
-
     function scheduleNext() {
       frameIdx--;
       if (frameIdx < 0) {
@@ -90,14 +82,11 @@
       const easedFps = fps * (0.25 + 0.75 * t);
       animationId = setTimeout(scheduleNext, 1000 / easedFps);
     }
-
     animationId = setTimeout(scheduleNext, 1000 / (fps * 0.25));
   }
-
   document.addEventListener("touchend", playReverse, { passive: true });
   document.addEventListener("wheel",    playReverse, { passive: true });
   document.addEventListener("click",    playReverse);
-
   window.addEventListener("load", () => {
     imgEl.src = frames[frames.length - 1].src;
   });
