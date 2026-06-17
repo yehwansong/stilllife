@@ -32,13 +32,11 @@
     const video = document.getElementById("vid");
     let fakeTimeout = null;
     let touchCount = 0;
-    let pauseThreshold = Math.floor(Math.random() * 13) + 3; // 3–15
-
+    let pauseThreshold = Math.floor(Math.random() * 13) + 3;
     video.addEventListener("loadedmetadata", () => {
       video.currentTime = 0;
       video.pause();
     });
-
     async function handleTouch() {
       video.currentTime = 0;
       try {
@@ -48,35 +46,30 @@
         console.error("Playback failed:", err);
       }
     }
-
     function scheduleFakeTouch() {
       touchCount++;
-
       if (touchCount >= pauseThreshold) {
         touchCount = 0;
-        pauseThreshold = Math.floor(Math.random() * 13) + 3; // new random 3–15
-        const pauseDuration = Math.random() * 1000 + 4000; // 4–5 sec
+        pauseThreshold = Math.floor(Math.random() * 13) + 3;
+        const pauseDuration = Math.random() * 1000 + 4000;
         console.log(`⏸️ Pausing for ${Math.round(pauseDuration)}ms, next threshold: ${pauseThreshold}`);
         fakeTimeout = setTimeout(() => {
           scheduleFakeTouch();
         }, pauseDuration);
         return;
       }
-
-      const delay = Math.random() * 200 + 200; // 200–400ms
+      const delay = Math.random() * 400 + 400; // 400–800ms
       fakeTimeout = setTimeout(async () => {
         console.log(`👻 Fake touch #${touchCount} / ${pauseThreshold}`);
         await handleTouch();
         scheduleFakeTouch();
       }, delay);
     }
-
     video.addEventListener("ended", () => {
       video.pause();
       video.currentTime = 0;
       console.log("⏹️ Video ended, showing first frame");
     });
-
     window.addEventListener("touchstart", () => {
       if (fakeTimeout) {
         clearTimeout(fakeTimeout);
