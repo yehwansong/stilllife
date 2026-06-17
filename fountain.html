@@ -15,72 +15,42 @@
       background-image: url(IMG_9409_10.png);
     }
     video {
-
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transform: scale(1.2);
-    filter: contrast(1.3);
-    background: black;
-    transform-origin: 67%;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scale(1.2);
+      filter: contrast(1.3);
+      background: black;
+      transform-origin: 67%;
     }
   </style>
 </head>
 <body>
   <video id="vid" src="IMG_9409.mp4" playsinline muted></video>
-
   <script>
-    let touched = false;
-    const lockTime = 1 * 60 * 1000; // 10 minutes
-    let op1 = false;
     const video = document.getElementById("vid");
 
-    function turnOnOp1() {
-      op1 = true;
-      console.log("✅ op1 turned ON");
-    }
-
-    function turnOffOp1() {
-      op1 = false;
-      console.log("⛔ op1 turned OFF");
-    }
-
-    // Show first frame when metadata is loaded
     video.addEventListener("loadedmetadata", () => {
       video.currentTime = 0;
-      video.pause(); // Show first frame
+      video.pause();
     });
 
     async function handleTouch() {
-      if (touched) return;
-
-      touched = true;
-      turnOnOp1();
-
       video.currentTime = 0;
-
       try {
         await video.play();
-        console.log("▶️ Video playing");
+        console.log("▶️ Video restarted");
       } catch (err) {
         console.error("Playback failed:", err);
-        touched = false;
-        return;
       }
-
-      video.onended = () => {
-        turnOffOp1();
-        video.pause();
-        video.currentTime = 0;
-        console.log("⏹️ Video ended and reset to first frame");
-      };
-
-      setTimeout(() => {
-        touched = false;
-        console.log("🕓 Ready to touch again");
-      }, lockTime);
     }
+
+    video.addEventListener("ended", () => {
+      video.pause();
+      video.currentTime = 0;
+      console.log("⏹️ Video ended, showing first frame");
+    });
 
     window.addEventListener("touchstart", handleTouch, { passive: true });
   </script>
