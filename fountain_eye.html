@@ -49,7 +49,6 @@
     background: red;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.05s ease;
     z-index: 9999;
   }
 </style>
@@ -58,38 +57,29 @@
   <div id="container"></div>
   <div id="touch-overlay"></div>
 <script>
-  const firstFrame = 650405;
-  const lastFrame  = 650423;
   const container = document.getElementById("container");
   const overlay = document.getElementById("touch-overlay");
-  const frames = [];
-  for (let i = firstFrame; i <= lastFrame; i++) {
-    const img = new Image();
-    img.src = `fork_img/IMG_${i}.webp`;
-    frames.push(img);
-  }
+
   const page = document.createElement("div");
   page.className = "page";
   const imgEl = document.createElement("img");
-  imgEl.src = frames[0].src;
+  imgEl.src = "fork_img/IMG_650615.png";
   page.appendChild(imgEl);
   container.appendChild(page);
-  window.addEventListener("load", () => {
-    imgEl.src = frames[frames.length - 1].src;
-  });
+
   function showOverlay() { overlay.style.opacity = "1"; }
   function hideOverlay() { overlay.style.opacity = "0"; }
+
   document.addEventListener("touchstart",  showOverlay, { passive: true });
   document.addEventListener("touchend",    hideOverlay, { passive: true });
   document.addEventListener("touchcancel", hideOverlay, { passive: true });
   document.addEventListener("mousedown",   showOverlay);
   document.addEventListener("mouseup",     hideOverlay);
 
-  // Flash red randomly every 0.1~0.2 seconds, hold for 0.05~0.1 seconds
   function scheduleFakeTouch() {
-    const delay = Math.random() * (67 - 33) + 33; // was 100~200ms → now 33~67ms
+    const delay = Math.random() * (67 - 33) + 33;
     setTimeout(() => {
-      const holdDuration = Math.random() * (33 - 17) + 17; // was 50~100ms → now 17~33ms
+      const holdDuration = Math.random() * (33 - 17) + 17;
       showOverlay();
       setTimeout(() => {
         hideOverlay();
