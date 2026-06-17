@@ -24,25 +24,15 @@
       background: black;
       transform-origin: 67%;
     }
-    #touch-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: red;
-      opacity: 0;
-      pointer-events: none;
-      z-index: 9999;
-    }
   </style>
 </head>
 <body>
-  <video id="vid" src="IMG_9410.mp4" playsinline muted></video>
-  <div id="touch-overlay"></div>
+  <video id="vid" src="IMG_9409.mp4" playsinline muted></video>
   <script>
     const video = document.getElementById("vid");
-    const overlay = document.getElementById("touch-overlay");
+    let fakeTimeout = null;
+    let touchCount = 0;
+    let pauseThreshold = Math.floor(Math.random() * 13) + 3; // 3–15
 
     video.addEventListener("loadedmetadata", () => {
       video.currentTime = 0;
@@ -50,39 +40,53 @@
     });
 
     async function handleTouch() {
-      video.pause();
       video.currentTime = 0;
       try {
         await video.play();
+        console.log("▶️ Video restarted");
       } catch (err) {
         console.error("Playback failed:", err);
       }
     }
 
+    function scheduleFakeTouch() {
+      touchCount++;
+
+      if (touchCount >= pauseThreshold) {
+        touchCount = 0;
+        pauseThreshold = Math.floor(Math.random() * 13) + 3; // new random 3–15
+        const pauseDuration = Math.random() * 1000 + 4000; // 4–5 sec
+        console.log(`⏸️ Pausing for ${Math.round(pauseDuration)}ms, next threshold: ${pauseThreshold}`);
+        fakeTimeout = setTimeout(() => {
+          scheduleFakeTouch();
+        }, pauseDuration);
+        return;
+      }
+
+      const delay = Math.random() * 200 + 200; // 200–400ms
+      fakeTimeout = setTimeout(async () => {
+        console.log(`👻 Fake touch #${touchCount} / ${pauseThreshold}`);
+        await handleTouch();
+        scheduleFakeTouch();
+      }, delay);
+    }
+
     video.addEventListener("ended", () => {
       video.pause();
       video.currentTime = 0;
+      console.log("⏹️ Video ended, showing first frame");
     });
 
-    window.addEventListener("touchstart", handleTouch, { passive: true });
-
-    function showOverlay() { overlay.style.opacity = "1"; }
-    function hideOverlay() { overlay.style.opacity = "0"; }
-
-    // Half the frequency of the upper page: delay 67~133ms, hold 33~67ms
-    function scheduleFakeTouch() {
-      const delay = Math.random() * (133 - 67) + 67;
-      setTimeout(() => {
-        const holdDuration = Math.random() * (67 - 33) + 33;
-        showOverlay();
-        handleTouch();
-        setTimeout(() => {
-          hideOverlay();
-          scheduleFakeTouch();
-        }, holdDuration);
-      }, delay);
-    }
-    scheduleFakeTouch();
+    window.addEventListener("touchstart", () => {
+      if (fakeTimeout) {
+        clearTimeout(fakeTimeout);
+        fakeTimeout = null;
+      }
+      touchCount = 0;
+      pauseThreshold = Math.floor(Math.random() * 13) + 3;
+      handleTouch();
+      scheduleFakeTouch();
+    }, { passive: true });
   </script>
 </body>
 </html>
