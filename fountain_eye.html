@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head>f
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Reverse Image Sequence</title>
@@ -27,14 +27,17 @@
     align-items: center;
     justify-content: center;
   }
-  .page img {
-    width: 100vh;
-    height: 100vw;
-    object-fit: cover;
-    display: block;
-    filter: contrast(1.2) saturate(1.2);
-    transform: rotate(90deg);
-  }
+.page img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  object-fit: cover;
+  display: block;
+  filter: contrast(1.2) saturate(1.2);
+  transform: translate(-50%, -50%) rotate(90deg);
+}
 </style>
 </head>
 <body>
