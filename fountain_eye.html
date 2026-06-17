@@ -87,9 +87,9 @@
 
   // Flash red randomly every 0.1~0.2 seconds, hold for 0.05~0.1 seconds
   function scheduleFakeTouch() {
-    const delay = Math.random() * (200 - 100) + 100; // 100~200ms between flashes
+    const delay = Math.random() * (67 - 33) + 33; // was 100~200ms → now 33~67ms
     setTimeout(() => {
-      const holdDuration = Math.random() * (100 - 50) + 50; // hold red for 50~100ms
+      const holdDuration = Math.random() * (33 - 17) + 17; // was 50~100ms → now 17~33ms
       showOverlay();
       setTimeout(() => {
         hideOverlay();
