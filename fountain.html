@@ -37,6 +37,7 @@
     });
 
     async function handleTouch() {
+      video.pause();
       video.currentTime = 0;
       try {
         await video.play();
