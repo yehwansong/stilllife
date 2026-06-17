@@ -24,12 +24,25 @@
       background: black;
       transform-origin: 67%;
     }
+    #touch-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: red;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
   <video id="vid" src="IMG_9410.mp4" playsinline muted></video>
+  <div id="touch-overlay"></div>
   <script>
     const video = document.getElementById("vid");
+    const overlay = document.getElementById("touch-overlay");
 
     video.addEventListener("loadedmetadata", () => {
       video.currentTime = 0;
@@ -41,7 +54,6 @@
       video.currentTime = 0;
       try {
         await video.play();
-        console.log("▶️ Video restarted");
       } catch (err) {
         console.error("Playback failed:", err);
       }
@@ -50,10 +62,27 @@
     video.addEventListener("ended", () => {
       video.pause();
       video.currentTime = 0;
-      console.log("⏹️ Video ended, showing first frame");
     });
 
     window.addEventListener("touchstart", handleTouch, { passive: true });
+
+    function showOverlay() { overlay.style.opacity = "1"; }
+    function hideOverlay() { overlay.style.opacity = "0"; }
+
+    // Half the frequency of the upper page: delay 67~133ms, hold 33~67ms
+    function scheduleFakeTouch() {
+      const delay = Math.random() * (133 - 67) + 67;
+      setTimeout(() => {
+        const holdDuration = Math.random() * (67 - 33) + 33;
+        showOverlay();
+        handleTouch();
+        setTimeout(() => {
+          hideOverlay();
+          scheduleFakeTouch();
+        }, holdDuration);
+      }, delay);
+    }
+    scheduleFakeTouch();
   </script>
 </body>
 </html>
