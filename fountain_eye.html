@@ -49,7 +49,7 @@
     background: red;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.15s ease;
+    transition: opacity 0.05s ease;
     z-index: 9999;
   }
 </style>
@@ -77,21 +77,19 @@
   window.addEventListener("load", () => {
     imgEl.src = frames[frames.length - 1].src;
   });
-
   function showOverlay() { overlay.style.opacity = "1"; }
   function hideOverlay() { overlay.style.opacity = "0"; }
-
   document.addEventListener("touchstart",  showOverlay, { passive: true });
   document.addEventListener("touchend",    hideOverlay, { passive: true });
   document.addEventListener("touchcancel", hideOverlay, { passive: true });
   document.addEventListener("mousedown",   showOverlay);
   document.addEventListener("mouseup",     hideOverlay);
 
-  // Fake touch: flash red overlay randomly every 0.1~5 seconds
+  // Flash red randomly every 0.1~0.2 seconds, hold for 0.05~0.1 seconds
   function scheduleFakeTouch() {
-    const delay = Math.random() * (5000 - 100) + 100;
+    const delay = Math.random() * (200 - 100) + 100; // 100~200ms between flashes
     setTimeout(() => {
-      const holdDuration = Math.random() * 400 + 100; // hold red for 100~500ms
+      const holdDuration = Math.random() * (100 - 50) + 50; // hold red for 50~100ms
       showOverlay();
       setTimeout(() => {
         hideOverlay();
@@ -99,7 +97,6 @@
       }, holdDuration);
     }, delay);
   }
-
   scheduleFakeTouch();
 </script>
 </body>
