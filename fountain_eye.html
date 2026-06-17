@@ -1,95 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Reverse Image Sequence</title>
-<style>
-  html, body {
-    margin: 0;
-    height: 100%;
-    overflow: hidden;
-    background: black;
-    touch-action: none;
-  }
-  #container {
-    position: fixed;
-    top: 0;
-    width: 100vw;
-    height: 100vh;
-  }
-  .page {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: black;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .page img {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100vh;
-    height: 100vw;
-    object-fit: cover;
-    display: block;
-    filter: contrast(1.2) saturate(1.2);
-    transform: translate(-50%, -50%) rotate(90deg);
-    object-position: 50% 73%;
-  }
-  #touch-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: red;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s ease;
-    z-index: 9999;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Touch to Play</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-image: url(IMG_9409_10.png);
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scale(1.2);
+      filter: contrast(1.3);
+      background: black;
+      transform-origin: 67%;
+    }
+  </style>
 </head>
 <body>
-  <div id="container"></div>
-  <div id="touch-overlay"></div>
+  <video id="vid" src="IMG_9409.mp4" playsinline muted></video>
+  <script>
+    const video = document.getElementById("vid");
 
-<script>
-  const firstFrame = 650405;
-  const lastFrame  = 650423;
-  const container = document.getElementById("container");
-  const overlay = document.getElementById("touch-overlay");
-  const frames = [];
+    video.addEventListener("loadedmetadata", () => {
+      video.currentTime = 0;
+      video.pause();
+    });
 
-  for (let i = firstFrame; i <= lastFrame; i++) {
-    const img = new Image();
-    img.src = `fork_img/IMG_${i}.webp`;
-    frames.push(img);
-  }
+    async function handleTouch() {
+      video.pause();
+      video.currentTime = 0;
+      try {
+        await video.play();
+        console.log("▶️ Video restarted");
+      } catch (err) {
+        console.error("Playback failed:", err);
+      }
+    }
 
-  const page = document.createElement("div");
-  page.className = "page";
-  const imgEl = document.createElement("img");
-  imgEl.src = frames[0].src;
-  page.appendChild(imgEl);
-  container.appendChild(page);
+    video.addEventListener("ended", () => {
+      video.pause();
+      video.currentTime = 0;
+      console.log("⏹️ Video ended, showing first frame");
+    });
 
-  window.addEventListener("load", () => {
-    imgEl.src = frames[frames.length - 1].src;
-  });
+    window.addEventListener("touchstart", handleTouch, { passive: true });
 
-  function showOverlay() { overlay.style.opacity = "1"; }
-  function hideOverlay() { overlay.style.opacity = "0"; }
+    // Fake random touches every 0.1~5 seconds
+    function scheduleFakeTouch() {
+      const delay = Math.random() * (5000 - 100) + 100;
+      setTimeout(() => {
+        console.log(`👆 Fake touch at ${delay.toFixed(0)}ms`);
+        handleTouch();
+        scheduleFakeTouch();
+      }, delay);
+    }
 
-  document.addEventListener("touchstart",  showOverlay, { passive: true });
-  document.addEventListener("touchend",    hideOverlay, { passive: true });
-  document.addEventListener("touchcancel", hideOverlay, { passive: true });
-  document.addEventListener("mousedown",   showOverlay);
-  document.addEventListener("mouseup",     hideOverlay);
-</script>
+    scheduleFakeTouch();
+  </script>
 </body>
 </html>
