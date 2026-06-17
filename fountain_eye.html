@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>f
+<head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Reverse Image Sequence</title>
@@ -13,13 +13,11 @@
     touch-action: manipulation;
   }
   #container {
-   
-    position: relative;
+    position: fixed;
+    top: 0;
     width: 100vw;
     height: 100vh;
-    top: 0;
-    position: fixed;
-}
+  }
   .page {
     position: absolute;
     top: 0; left: 0;
@@ -30,8 +28,7 @@
     align-items: center;
     justify-content: center;
   }
-.page img {
-
+  .page img {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -42,62 +39,53 @@
     filter: contrast(1.2) saturate(1.2);
     transform: translate(-50%, -50%) rotate(90deg);
     object-position: 50% 73%;
-}
+  }
+  #touch-overlay {
+    position: fixed;
+    inset: 0;
+    background: red;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+  }
 </style>
 </head>
 <body>
   <div id="container"></div>
+  <div id="touch-overlay"></div>
+
 <script>
   const firstFrame = 650405;
   const lastFrame  = 650423;
   const fps = 30;
   const container = document.getElementById("container");
+  const overlay = document.getElementById("touch-overlay");
   const frames = [];
+
   for (let i = firstFrame; i <= lastFrame; i++) {
     const img = new Image();
     img.src = `fork_img/IMG_${i}.webp`;
     frames.push(img);
   }
+
   const page = document.createElement("div");
   page.className = "page";
   const imgEl = document.createElement("img");
   imgEl.src = frames[0].src;
   page.appendChild(imgEl);
   container.appendChild(page);
-  let animationId = null;
-  let isPlaying = false;
-  function stopAnimation() {
-    if (animationId !== null) { clearTimeout(animationId); animationId = null; }
-    isPlaying = false;
-  }
-  function playReverse() {
-    stopAnimation();
-    isPlaying = true;
-    const totalFrames = frames.length;
-    const rampFrames = 6;
-    let frameIdx = totalFrames - 1;
-    imgEl.src = frames[frameIdx].src;
-    function scheduleNext() {
-      frameIdx--;
-      if (frameIdx < 0) {
-        imgEl.src = frames[0].src;
-        isPlaying = false;
-        return;
-      }
-      imgEl.src = frames[frameIdx].src;
-      const progress = totalFrames - 1 - frameIdx;
-      const t = Math.min(progress / rampFrames, 1);
-      const easedFps = fps * (0.25 + 0.75 * t);
-      animationId = setTimeout(scheduleNext, 1000 / easedFps);
-    }
-    animationId = setTimeout(scheduleNext, 1000 / (fps * 0.25));
-  }
-  document.addEventListener("touchend", playReverse, { passive: true });
-  document.addEventListener("wheel",    playReverse, { passive: true });
-  document.addEventListener("click",    playReverse);
+
   window.addEventListener("load", () => {
     imgEl.src = frames[frames.length - 1].src;
   });
+
+  function showOverlay() { overlay.style.opacity = "1"; }
+  function hideOverlay() { overlay.style.opacity = "0"; }
+
+  document.addEventListener("touchstart",  showOverlay, { passive: true });
+  document.addEventListener("touchend",    hideOverlay, { passive: true });
+  document.addEventListener("touchcancel", hideOverlay, { passive: true });
 </script>
 </body>
 </html>
