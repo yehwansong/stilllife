@@ -27,16 +27,33 @@
   </style>
 </head>
 <body>
-  <video id="vid" src="IMG_9409.mp4" playsinline muted></video>
+  <video id="vid" src="IMG_9409.mp4" playsinline muted autoplay></video>
   <script>
     const video = document.getElementById("vid");
     let fakeTimeout = null;
     let touchCount = 0;
     let pauseThreshold = Math.floor(Math.random() * 13) + 3;
-    video.addEventListener("loadedmetadata", () => {
+    let started = false;
+
+    async function startPlayback() {
       video.currentTime = 0;
-      video.pause();
-    });
+      try {
+        await video.play();
+        console.log("▶️ Video playing");
+        started = true;
+      } catch (err) {
+        console.warn("Autoplay blocked, retrying muted:", err);
+        video.muted = true;
+        try {
+          await video.play();
+          started = true;
+          console.log("▶️ Playing muted after retry");
+        } catch (err2) {
+          console.error("Playback still failed:", err2);
+        }
+      }
+    }
+
     async function handleTouch() {
       video.currentTime = 0;
       try {
@@ -46,6 +63,7 @@
         console.error("Playback failed:", err);
       }
     }
+
     function scheduleFakeTouch() {
       touchCount++;
       if (touchCount >= pauseThreshold) {
@@ -58,18 +76,35 @@
         }, pauseDuration);
         return;
       }
-      const delay = Math.random() * 400 + 400; // 400–800ms
+      const delay = Math.random() * 400 + 400;
       fakeTimeout = setTimeout(async () => {
         console.log(`👻 Fake touch #${touchCount} / ${pauseThreshold}`);
         await handleTouch();
         scheduleFakeTouch();
       }, delay);
     }
+
     video.addEventListener("ended", () => {
       video.pause();
       video.currentTime = 0;
       console.log("⏹️ Video ended, showing first frame");
     });
+
+    // Try autoplay as soon as metadata is ready
+    video.addEventListener("loadedmetadata", () => {
+      if (!started) {
+        startPlayback().then(() => {
+          if (started) scheduleFakeTouch();
+        });
+      }
+    });
+
+    // Also try immediately in case metadata already loaded
+    startPlayback().then(() => {
+      if (started) scheduleFakeTouch();
+    });
+
+    // Touch overrides fake loop and restarts
     window.addEventListener("touchstart", () => {
       if (fakeTimeout) {
         clearTimeout(fakeTimeout);
@@ -80,6 +115,18 @@
       handleTouch();
       scheduleFakeTouch();
     }, { passive: true });
+
+    // Click fallback for desktop/non-touch
+    window.addEventListener("click", () => {
+      if (fakeTimeout) {
+        clearTimeout(fakeTimeout);
+        fakeTimeout = null;
+      }
+      touchCount = 0;
+      pauseThreshold = Math.floor(Math.random() * 13) + 3;
+      handleTouch();
+      scheduleFakeTouch();
+    });
   </script>
 </body>
 </html>
