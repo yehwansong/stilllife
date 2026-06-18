@@ -31,121 +31,60 @@
   <script>
     const video = document.getElementById("vid");
     let fakeTimeout = null;
-    let touchCount = 0;
-    let pauseThreshold = Math.floor(Math.random() * 13) + 3;
     let started = false;
+    let restartCount = 0;
+    let freePlayThreshold = Math.floor(Math.random() * 3) + 5;
 
     async function startPlayback() {
       video.currentTime = 0;
       try {
         await video.play();
-        console.log("▶️ Video playing");
         started = true;
       } catch (err) {
-        console.warn("Autoplay blocked, retrying muted:", err);
         video.muted = true;
         try {
           await video.play();
           started = true;
-          console.log("▶️ Playing muted after retry");
         } catch (err2) {
-          console.error("Playback still failed:", err2);
+          console.error("Playback failed:", err2);
         }
       }
     }
 
-    async function handleTouch() {
-      video.currentTime = 0;
-      try {
-        await video.play();
-        console.log("▶️ Video restarted");
-      } catch (err) {
-        console.error("Playback failed:", err);
-      }
-    }
+    function scheduleNextRestart() {
+      restartCount++;
 
-    let freePlayCount = 0;
-    let freePlayThreshold = Math.floor(Math.random() * 3) + 5;
-
-    function scheduleFakeTouch() {
-      touchCount++;
-      freePlayCount++;
-
-      if (freePlayCount >= freePlayThreshold) {
-        freePlayCount = 0;
+      if (restartCount >= freePlayThreshold) {
+        restartCount = 0;
         freePlayThreshold = Math.floor(Math.random() * 3) + 5;
         const freePlayDuration = Math.random() * 2000 + 5000;
-        console.log(`🎬 Free play for ${Math.round(freePlayDuration)}ms`);
-        video.currentTime = 0;
-        video.play().catch(() => {});
-        fakeTimeout = setTimeout(() => {
-          scheduleFakeTouch();
-        }, freePlayDuration);
-        return;
-      }
-
-      if (touchCount >= pauseThreshold) {
-        touchCount = 0;
-        pauseThreshold = Math.floor(Math.random() * 13) + 3;
-        const pauseDuration = Math.random() * 1000 + 4000;
-        console.log(`⏸️ Pausing for ${Math.round(pauseDuration)}ms, next threshold: ${pauseThreshold}`);
-        fakeTimeout = setTimeout(() => {
-          scheduleFakeTouch();
-        }, pauseDuration);
+        console.log(`🎬 Free play for ${Math.round(freePlayDuration / 1000)}s`);
+        fakeTimeout = setTimeout(() => doRestart(), freePlayDuration);
         return;
       }
 
       const delay = Math.random() * 1200 + 1200;
-      fakeTimeout = setTimeout(async () => {
-        console.log(`👻 Fake touch #${touchCount} / ${pauseThreshold}`);
-        await handleTouch();
-        scheduleFakeTouch();
-      }, delay);
+      fakeTimeout = setTimeout(() => doRestart(), delay);
+    }
+
+    function doRestart() {
+      video.currentTime = 0;
+      video.play().catch(() => {});
+      scheduleNextRestart();
     }
 
     video.addEventListener("ended", () => {
       video.pause();
       video.currentTime = 0;
-      console.log("⏹️ Video ended, showing first frame");
     });
 
-    // Try autoplay as soon as metadata is ready
     video.addEventListener("loadedmetadata", () => {
       if (!started) {
-        startPlayback().then(() => {
-          if (started) scheduleFakeTouch();
-        });
+        startPlayback().then(() => { if (started) scheduleNextRestart(); });
       }
     });
 
-    // Also try immediately in case metadata already loaded
-    startPlayback().then(() => {
-      if (started) scheduleFakeTouch();
-    });
-
-    // Touch overrides fake loop and restarts
-    window.addEventListener("touchstart", () => {
-      if (fakeTimeout) {
-        clearTimeout(fakeTimeout);
-        fakeTimeout = null;
-      }
-      touchCount = 0;
-      pauseThreshold = Math.floor(Math.random() * 13) + 3;
-      handleTouch();
-      scheduleFakeTouch();
-    }, { passive: true });
-
-    // Click fallback for desktop/non-touch
-    window.addEventListener("click", () => {
-      if (fakeTimeout) {
-        clearTimeout(fakeTimeout);
-        fakeTimeout = null;
-      }
-      touchCount = 0;
-      pauseThreshold = Math.floor(Math.random() * 13) + 3;
-      handleTouch();
-      scheduleFakeTouch();
-    });
+    startPlayback().then(() => { if (started) scheduleNextRestart(); });
   </script>
 </body>
 </html>
